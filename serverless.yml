@@ -1,0 +1,36 @@
+service: lunes10am-bot
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  profile: jc
+  timeout: 900
+  httpApi:
+    cors: false
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - cloudwatch:PutMetricData
+          Resource: "*"
+  environment:
+    ACCESS_TOKEN: ${ssm:/lambda/lunes10am-bot/accessToken}
+
+custom:
+  webpack:
+    includeModules:
+      forceExclude:
+      - "@aws-sdk/client-cloudwatch"
+
+functions:
+  run:
+    handler: handler.run
+    events:
+      # Each Monday at 10am UTC-3
+      - schedule: cron(0 13 ? * MON *)
+
+plugins:
+  - serverless-webpack
